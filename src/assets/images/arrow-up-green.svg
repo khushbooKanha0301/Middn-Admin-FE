@@ -1,0 +1,20 @@
+<svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="arrow-up">
+<g id="vuesax/linear/arrow-up">
+<g id="arrow-up_2">
+<path id="Vector" d="M7.80891 5.87087L12.2073 5.87087L12.2073 10.2693" stroke="url(#paint0_linear_13_1596)" stroke-width="1.02476" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Vector_2" d="M6.0479 12.03L12.1455 5.93237" stroke="url(#paint1_linear_13_1596)" stroke-width="1.02476" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+</g>
+</g>
+<defs>
+<linearGradient id="paint0_linear_13_1596" x1="8.61581" y1="2.27938" x2="14.7495" y2="11.8466" gradientUnits="userSpaceOnUse">
+<stop stop-color="#7FFC8D"/>
+<stop offset="1" stop-color="#C6FA56"/>
+</linearGradient>
+<linearGradient id="paint1_linear_13_1596" x1="11.2146" y1="5.00143" x2="12.52" y2="6.34042" gradientUnits="userSpaceOnUse">
+<stop stop-color="#7FFC8D"/>
+<stop offset="1" stop-color="#C6FA56"/>
+</linearGradient>
+</defs>
+</svg>
