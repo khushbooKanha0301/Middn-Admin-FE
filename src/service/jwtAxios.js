@@ -29,11 +29,12 @@ jwtAxios.interceptors.request.use(
       }
     }
     config.headers['Authorization'] = `Bearer ${localStorage.getItem('token')}`;
-        return config;
-    },
-    error => {
-        return Promise.reject(error);
-    }
+    config.headers['RoleId'] = `${localStorage.getItem('roleId')}`;
+    return config;
+  },
+  error => {
+      return Promise.reject(error);
+  }
 );
 
 jwtAxios.interceptors.response.use(

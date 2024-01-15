@@ -6,9 +6,10 @@ import { login } from "../store/slices/AuthenticationSlice";
 
 function Login() {
   const [password, setPassword] = useState("Password");
-  const [email, setEmail] = useState("admin@middn.com");
+  const [email, setEmail] = useState("administrator@middn.com");
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  
   const loginUser = () => {
     const req = { userName: email, password: password };
     if (!email) {

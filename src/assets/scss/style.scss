@@ -1055,15 +1055,18 @@ button:disabled {
 
                             .country-select {
                                 ul.options.phoneNumber {
-                                    max-height: 440px;
-                                    width: 310px;
+                                    max-height: 420px;
+                                    width: 302px;
                                     font-size: 0.87rem !important;
                                     color: white;
-
-                                   
-                                    @media screen and (max-width:1200px) {
+                                    bottom: 24px;
+                                    left: 46px; 
+                                                                       
+                                    @media screen and (max-width:1199px) {
                                         right: 100%;
-                                        margin: 0px -58px 0 0px;
+                                        margin: 10px -58px 0 0px;
+                                        bottom: unset;
+                                        left: unset; 
                                     }
 
                                 }
