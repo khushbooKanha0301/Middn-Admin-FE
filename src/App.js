@@ -28,15 +28,12 @@ import Login from "./Components/Login";
 import { useDispatch, useSelector } from "react-redux";
 import ForgotPasswordComponent from "./Components/ForgotPassword/ForgotPasswordComponent";
 import ResetPasswordComponent from "./Components/ForgotPassword/ResetPasswordComponent";
-import { isAccess } from "./utils";
 import { useJwt } from "react-jwt";
 import { useEffect } from "react";
 import { setSAL } from "./store/slices/AuthenticationSlice";
 function App() {
-  const authToken =
-    useSelector((state) => state.authenticationReducer?.authToken) || null;
-  let roleId =
-    useSelector((state) => state.authenticationReducer?.roleId) || null;
+  const authToken = useSelector((state) => state.authenticationReducer?.authToken) || null;
+  let roleId = useSelector((state) => state.authenticationReducer?.roleId) || null;
   roleId = Number(roleId);
   const token = localStorage.getItem("token") || "";
   const { decodedToken } = useJwt(token);

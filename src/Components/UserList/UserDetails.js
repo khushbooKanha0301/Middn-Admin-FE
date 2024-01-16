@@ -20,6 +20,7 @@ function UserDetails() {
   const dispatch = useDispatch();
   const [open, setOpen] = React.useState(false);
   const [user, setUser] = React.useState({});
+ console.log("user ", user);
   const { id } = useParams();
   const handleOpen = () => setOpen(!open);
   const [country, setCountry] = React.useState(" +1");
@@ -44,11 +45,11 @@ function UserDetails() {
 
   useEffect(() => {
     // Add global click event listener
-    document.addEventListener('click', handleGlobalClick);
+    document.addEventListener("click", handleGlobalClick);
 
     // Remove the event listener when the component unmounts
     return () => {
-      document.removeEventListener('click', handleGlobalClick);
+      document.removeEventListener("click", handleGlobalClick);
     };
   }, []);
 
@@ -174,7 +175,7 @@ function UserDetails() {
     }
   };
 
-  const banUserHandler = async () => {
+  const banUserHandler = async (banned) => {
     Swal.fire({
       title: "Are you sure?",
       text: "Do you want to Ban this user?",
@@ -185,8 +186,76 @@ function UserDetails() {
       customClass: {
         popup: "suspend",
       },
-    }).then(async (result) => {});
+    }).then(async (result) => {
+      let formSubmit = {
+        is_banned: banned,
+      };
+      jwtAxios
+        .put(`/users/bannedUser/${id}`, formSubmit)
+        .then((res) => {
+          Swal.fire("Banned!", "User Banned...", "danger");
+          if (res) {
+            console.log("banned-------");
+            setUser(res?.data.User);
+            // navigate("/");
+            // dispatch(notificationSuccess("User Banned successfully !"));
+          }
+        })
+        .catch((error) => {
+          if (typeof error == "string") {
+            dispatch(notificationFail(error));
+          }
+          if (error?.response?.data?.message === "") {
+            dispatch(notificationFail("Invalid "));
+          }
+          if (error?.response?.data?.message) {
+            dispatch(notificationFail(error?.response?.data?.message));
+          }
+        });
+    });
   };
+
+  const activeUserHandler = async (banned) => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "Do you want to Active this user?",
+      showCancelButton: true,
+      confirmButtonColor: "red",
+      cancelButtonColor: "#808080",
+      confirmButtonText: "Yes",
+      customClass: {
+        popup: "suspend",
+      },
+    }).then(async (result) => {
+      let formSubmit = {
+        is_banned: banned,
+      };
+      jwtAxios
+        .put(`/users/bannedUser/${id}`, formSubmit)
+        .then((res) => {
+          Swal.fire("Active!", "User Active...", "danger");
+          if (res) {
+            console.log("banned-------");
+            setUser(res?.data.User);
+            // navigate("/");
+            // dispatch(notificationSuccess("User Banned successfully !"));
+          }
+        })
+        .catch((error) => {
+          if (typeof error == "string") {
+            dispatch(notificationFail(error));
+          }
+          if (error?.response?.data?.message === "") {
+            dispatch(notificationFail("Invalid "));
+          }
+          if (error?.response?.data?.message) {
+            dispatch(notificationFail(error?.response?.data?.message));
+          }
+        });
+    });
+  };
+
+
 
   const twoFADisableHandler = async () => {
     Swal.fire({
@@ -353,26 +422,17 @@ function UserDetails() {
                           className="circle-data h-full w-full object-cover"
                         />
                       </span>
-                     
-
-                      {/* <select label="Select Version" onChange={countryChange}>
-                        {listData.map((data) => (
-                          <option
-                            value={`${data?.code}`}
-                            key={`${data?.code}_${data?.country}`}
-                          >
-                            {data?.country} ({data?.code})
-                          </option>
-                        ))}
-                      </select> */}
 
                       <div className="country-select" ref={countryDropdownRef}>
                         <div
                           className="dropdownPersonalData form-select form-select-sm"
                           onClick={toggleCountryOptions}
                         >
-                        <p className="text-[16px] text-white mx-1">
-                            {listData.find((item) => item?.code === country)?.cca3}
+                          <p className="text-[16px] text-white mx-1">
+                            {
+                              listData.find((item) => item?.code === country)
+                                ?.cca3
+                            }
                           </p>
                         </div>
                         {showCountryOptions && (
@@ -384,7 +444,7 @@ function UserDetails() {
                                   countryChange(data?.code);
                                 }}
                               >
-                              {data?.country} ({data?.code})
+                                {data?.country} ({data?.code})
                               </li>
                             ))}
                           </ul>
@@ -401,12 +461,23 @@ function UserDetails() {
                 >
                   Save
                 </button>
-                <button
+                {user.is_banned 
+                  ?  
+                  <button
+                  className="GradiantBtn w-[calc(100%_-_20px)] sm:w-[calc(50%_-_20px)] mx-2.5 my-0"
+                  onClick={() => activeUserHandler(false)}
+                  >
+                  Active User
+                  </button> 
+                  :
+                  <button
                   className="PinkBtn w-[calc(100%_-_20px)] sm:w-[calc(50%_-_20px)] mx-2.5 my-0"
-                  onClick={banUserHandler}
-                >
+                  onClick={() => banUserHandler(true)}
+                  >
                   Ban User
-                </button>
+                  </button>
+                }
+                
               </div>
             </div>
           </div>

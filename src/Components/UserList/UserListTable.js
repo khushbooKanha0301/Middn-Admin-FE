@@ -36,7 +36,11 @@ function UserListTable({filteredTableBody}) {
                 <td>{item.phoneCountry}{item.phone}</td>
                 <td>{item.joined_at}</td>
                 <td>{getCurrencyFormattedPrice(0)}</td>
-                <td><button className="table-btn succeed">Active User</button></td>
+                <td>{item.is_banned ? 
+                  <button className="table-btn danger">Banned User</button>
+                : <button className="table-btn succeed">Active User</button>}
+                </td>
+                  
                 <td>
                   <Link className="action" to={`/userdetails/${item._id}`}>
                     <img src={Desktop} alt="" /> Detail
