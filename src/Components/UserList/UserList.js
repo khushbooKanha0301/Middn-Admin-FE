@@ -11,8 +11,7 @@ function UserList() {
   const [currentPage, setCurrentPage] = useState(1);
   const [users, setUsers] = useState([]);
   const [totalUsersCount, setTotalUsersCount] = useState(0);
-  const [statusFilter, setStatusFilter] = useState(false);
- console.log("statusFilter ", statusFilter);
+  const [statusFilter, setStatusFilter] = useState(0);
   const [searchTrnx, setSearchTrnx] = useState(null);
   const [debouncedSearchValue, setDebouncedSearchValue] = useState('');
   const [isComponentMounted, setIsComponentMounted] = useState(false);
@@ -24,10 +23,9 @@ function UserList() {
         .get(`/users/userList?query=${
           searchTrnx ? searchTrnx : null
         }&statusFilter=${
-          statusFilter ? statusFilter : false
+          statusFilter ? statusFilter : 0
         }&page=${currentPage}&pageSize=${PageSize}`)
         .then((res) => {
-          console.log(res.data?.users)
           setUsers(res.data?.users);
           setTotalUsersCount(res.data?.totalUsersCount);
           setUserLoading(false);
@@ -63,7 +61,6 @@ function UserList() {
   }, [currentPage]);
 
   const changeStatus = (status) => {
- console.log("status ", status);
     setStatusFilter(status);
   };
   
@@ -79,23 +76,25 @@ function UserList() {
               role="tablist"
             >
               <li>
-                <Link className={statusFilter === "All" ? "active" : ""} onClick={() => changeStatus(false)}>Active Users
-                 <span className="number">{totalUsersCount}</span>
+                <Link className={statusFilter === 0 ? "active" : ""} onClick={() => changeStatus(0)}>Active Users
+                 <span className="number">0</span>
                 </Link>
               </li>
               <li>
-                <Link className={statusFilter === "banneduser" ? "active" : ""} onClick={() => changeStatus(true)}>
+                <Link className={statusFilter === 1 ? "active" : ""} onClick={() => changeStatus(1)}>
                   Banned Users
-                  <span className="number">{totalUsersCount}</span>
+                  <span className="number">0</span>
                 </Link>
               </li>
-
-
               <li>
-                <Link className={statusFilter === "emailunverified" ? "active" : ""} onClick={() => setStatusFilter("emailunverified")}>Email Unverified  <span className="number">50 +</span> </Link>
+                <Link className={statusFilter === 2 ? "active" : ""} onClick={() => changeStatus(2)}>
+                  Email Unverified  
+                  <span className="number">50 +</span> </Link>
               </li>
               <li>
-                <Link className={statusFilter === "mobileunverified" ? "active" : ""} onClick={() => setStatusFilter("mobileunverified")}>Mobile Unverified <span className="number">50 +</span></Link>
+                <Link className={statusFilter === 3 ? "active" : ""} onClick={() => changeStatus(3)}>
+                  Mobile Unverified 
+                  <span className="number">50 +</span></Link>
               </li>
               
             </ul>
