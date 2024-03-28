@@ -20,9 +20,8 @@ import { ref, set } from "@firebase/database";
 
 function UserDetails() {
   const dispatch = useDispatch();
-  const [open, setOpen] = React.useState(false);
   const [user, setUser] = React.useState({});
-  console.log("user ", user);
+  const [open, setOpen] = React.useState(false);
   const { id } = useParams();
   const handleOpen = () => setOpen(!open);
   const [country, setCountry] = React.useState(" +1");
@@ -728,6 +727,9 @@ function UserDetails() {
                   </li>
                   <li>
                     <Link to={`/userloginhistory/${id}`}>Logins Log</Link>
+                  </li>
+                  <li>
+                    <Link to={`/reportedUser/${user?.wallet_address}`}>Report Users</Link>
                   </li>
                   <li className="">
                     <Link to="">Notification</Link>

@@ -14,7 +14,7 @@ const tablehead = [
     "Action",
   ];   
 
-function UserListTable({filteredTableBody}) {
+function UserListTable({filteredTableBody, statusFilter}) {
   return (
     <div className="common-table overflow-x-auto">
       <table className="w-[900px] xl:w-full">
@@ -36,9 +36,31 @@ function UserListTable({filteredTableBody}) {
                 <td>{item.phoneCountry}{item.phone}</td>
                 <td>{item.joined_at}</td>
                 <td>{getCurrencyFormattedPrice(0)}</td>
-                <td>{item.is_banned ? 
-                  <button className="table-btn danger">Banned User</button>
-                : <button className="table-btn succeed">Active User</button>}
+                <td>
+                {statusFilter === 'All' ? (
+                  <>
+                    {item.email_verified === 0 || item.email_verified === undefined ? (
+                      <button className="table-btn warning">Email Unverified</button>
+                    ) : item.phone_verified === 0 || item.phone_verified === undefined ? (
+                      <button className="table-btn check-status">Mobile Unverified</button>
+                    ) : item.is_banned ? (
+                      <button className="table-btn danger">Banned User</button>
+                    ) : (
+                      <button className="table-btn succeed">Active User</button>
+                    )}
+                  </>
+                ) : statusFilter === 'Active'  ? 
+                ( 
+                <> {item.email_verified === 1 && item.phone_verified === 1 && <button className="table-btn succeed">Active User</button>}
+                </>
+                ) : statusFilter === 'Ban' ? 
+                (<button className="table-btn danger">Banned User</button>) 
+                : statusFilter === 'Email' ? 
+                (<button className="table-btn warning">Email Unverified</button>)
+                : statusFilter === 'Mobile' ? 
+                (<button className="table-btn check-status">Mobile Unverified</button>) 
+                : null }
+
                 </td>
                   
                 <td>

@@ -5,8 +5,8 @@ import { notificationFail } from "../store/slices/notificationSlice";
 import { login } from "../store/slices/AuthenticationSlice";
 
 function Login() {
-  const [password, setPassword] = useState("Password");
-  const [email, setEmail] = useState("administrator@middn.com");
+  const [password, setPassword] = useState(null);
+  const [email, setEmail] = useState(null);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   

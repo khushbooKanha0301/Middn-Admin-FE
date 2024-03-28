@@ -11,13 +11,12 @@ function SearchBar({placeholder,setSearchQuery}) {
   };
 
   return (
-    <div className="tabSearch max-w-[357px] w-full">
+    <div className="tabSearch max-w-[357px] w-full tabs-right">
       <div className="formControl relative">
         <input
           type="text"
           placeholder={placeholder}
           className="bg-[#282A2C] rounded-[13px] border-[none] h-14 w-full pl-[40px] text-white text-[13px] not-italic font-bold leading-5"
-          
           value={inputValue}
           onChange={handleInputChange}
 

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, NavLink, useLocation, useParams } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import logo from "../../assets/images/logo.svg";
 import house from "../../assets/images/house.svg";
 import GitDiff from "../../assets/images/GitDiff.svg";
@@ -43,6 +43,22 @@ function Sidebar(props) {
           "userdeposithistory",
           "transactionlogs",
           "userloginhistory",
+        ],
+      },
+      {
+        icon: GitDiff,
+        title: "Report User List",
+        link: "/reportUsersList",
+        activeRoutes: [
+          "ReportUsersList"
+        ],
+      },
+      {
+        icon: GitDiff,
+        title: "KYC List",
+        link: "/kycList",
+        activeRoutes: [
+         "Kyclist"
         ],
       },
       {

@@ -3,7 +3,7 @@ import SearchBar from "../SearchBar";
 import Pagination from "../Pagination";
 import { Link } from "react-router-dom";
 import UserListTable from "./UserListTable";
-import jwtAxios from '../../service/jwtAxios';
+import jwtAxios from "../../service/jwtAxios";
 import { useEffect } from "react";
 
 function UserList() {
@@ -11,23 +11,34 @@ function UserList() {
   const [currentPage, setCurrentPage] = useState(1);
   const [users, setUsers] = useState([]);
   const [totalUsersCount, setTotalUsersCount] = useState(0);
-  const [statusFilter, setStatusFilter] = useState(0);
+  const [statusFilter, setStatusFilter] = useState('All');
   const [searchTrnx, setSearchTrnx] = useState(null);
-  const [debouncedSearchValue, setDebouncedSearchValue] = useState('');
+  const [debouncedSearchValue, setDebouncedSearchValue] = useState("");
   const [isComponentMounted, setIsComponentMounted] = useState(false);
   const [userLoading, setUserLoading] = useState(true);
+
+  const [totalActiveCount, setTotalActiveCount] = useState(0);
+  const [totalBanCount, setTotalBanCount] = useState(0);
+  const [totalEmailCount, setTotalEmailCount] = useState(0);
+  const [totalPhoneCount, setTotalPhoneCount] = useState(0);
 
   const getusers = async () => {
     if (currentPage) {
       await jwtAxios
-        .get(`/users/userList?query=${
-          searchTrnx ? searchTrnx : null
-        }&statusFilter=${
-          statusFilter ? statusFilter : 0
-        }&page=${currentPage}&pageSize=${PageSize}`)
+        .get(
+          `/users/userList?query=${
+            searchTrnx ? searchTrnx : null
+          }&statusFilter=${
+            statusFilter ? statusFilter : 'All'
+          }&page=${currentPage}&pageSize=${PageSize}`
+        )
         .then((res) => {
           setUsers(res.data?.users);
           setTotalUsersCount(res.data?.totalUsersCount);
+          setTotalActiveCount(res.data?.activeCount);
+          setTotalBanCount(res.data?.banCount);
+          setTotalEmailCount(res.data?.emailCount);
+          setTotalPhoneCount(res.data?.phoneCount);
           setUserLoading(false);
         })
         .catch((err) => {
@@ -36,24 +47,21 @@ function UserList() {
     }
   };
   useEffect(() => {
-    if(isComponentMounted)
-    {
-      
+    if (isComponentMounted) {
       const delayApiCall = setTimeout(() => {
         setDebouncedSearchValue(searchTrnx);
       }, 1000);
-      
+
       return () => clearTimeout(delayApiCall);
     }
   }, [searchTrnx]);
 
   useEffect(() => {
-    if(isComponentMounted)
-    {
+    if (isComponentMounted) {
       setCurrentPage(1);
       getusers();
     }
-  },[debouncedSearchValue,statusFilter])
+  }, [debouncedSearchValue, statusFilter]);
 
   useEffect(() => {
     getusers();
@@ -63,7 +71,7 @@ function UserList() {
   const changeStatus = (status) => {
     setStatusFilter(status);
   };
-  
+
   return (
     <div className="mainUserList">
       <h1 className="maintitle">Manage User</h1>
@@ -76,39 +84,66 @@ function UserList() {
               role="tablist"
             >
               <li>
-                <Link className={statusFilter === 0 ? "active" : ""} onClick={() => changeStatus(0)}>Active Users
-                 <span className="number">0</span>
+                <Link
+                  className={statusFilter === 'All' ? "active" : ""}
+                  onClick={() => changeStatus('All')}
+                >
+                  All
+                  <span className="number">{totalUsersCount > 50 ? '50+' : totalUsersCount}</span>
+                </Link>
+              </li>
+
+              <li>
+                <Link
+                  className={statusFilter === 'Active' ? "active" : ""}
+                  onClick={() => changeStatus('Active')}
+                >
+                  Active Users
+                  <span className="number">{totalActiveCount}</span>
                 </Link>
               </li>
               <li>
-                <Link className={statusFilter === 1 ? "active" : ""} onClick={() => changeStatus(1)}>
+                <Link
+                  className={statusFilter === 'Ban' ? "active" : ""}
+                  onClick={() => changeStatus('Ban')}
+                >
                   Banned Users
-                  <span className="number">0</span>
+                  <span className="number">{totalBanCount}</span>
                 </Link>
               </li>
               <li>
-                <Link className={statusFilter === 2 ? "active" : ""} onClick={() => changeStatus(2)}>
-                  Email Unverified  
-                  <span className="number">50 +</span> </Link>
+                <Link
+                  className={statusFilter === 'Email' ? "active" : ""}
+                  onClick={() => changeStatus('Email')}
+                >
+                  Email Unverified
+                  <span className="number">{totalEmailCount > 50 ? '50+': totalEmailCount}</span>{" "}
+                </Link>
               </li>
               <li>
-                <Link className={statusFilter === 3 ? "active" : ""} onClick={() => changeStatus(3)}>
-                  Mobile Unverified 
-                  <span className="number">50 +</span></Link>
+                <Link
+                  className={statusFilter === 'Mobile' ? "active" : ""}
+                  onClick={() => changeStatus('Mobile')}
+                >
+                  Mobile Unverified
+                  <span className="number">{totalPhoneCount > 50 ? '50+': totalPhoneCount}</span>
+                </Link>
               </li>
-              
             </ul>
-            <SearchBar placeholder="Search by name" setSearchQuery={setSearchTrnx}/>
+            <SearchBar
+              placeholder="Search by name"
+              setSearchQuery={setSearchTrnx}
+            />
           </div>
 
-          <UserListTable filteredTableBody={users}/>
+          <UserListTable filteredTableBody={users} statusFilter={statusFilter}/>
 
           <Pagination
             currentPage={currentPage}
             totalCount={totalUsersCount}
             pageSize={PageSize}
             onPageChange={(page) => setCurrentPage(page)}
-           />
+          />
         </div>
       </div>
     </div>

@@ -304,7 +304,6 @@ function Withdraw() {
     },
   ];  
 
-
   return (
     <>
       <div className="mainUserList withdrow">
