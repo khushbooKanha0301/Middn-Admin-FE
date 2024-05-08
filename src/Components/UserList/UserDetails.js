@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { Form, Button } from "react-bootstrap";
 import {
-  Button,
   Dialog,
   DialogHeader,
   DialogBody,
@@ -17,9 +17,11 @@ import {
 import Swal from "sweetalert2/src/sweetalert2.js";
 import { database, firebaseMessages } from "../../config";
 import { ref, set } from "@firebase/database";
+import SelectOptionDropdown from "../../Components/SelectOptionDropdown";
 
 function UserDetails() {
   const dispatch = useDispatch();
+  const [isMobile, setIsMobile] = useState(false);
   const [user, setUser] = React.useState({});
   const [open, setOpen] = React.useState(false);
   const { id } = useParams();
@@ -30,29 +32,23 @@ function UserDetails() {
   const [lname, setLname] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [phone, setPhone] = React.useState("");
+  const [countryCallingCode, setCountryCallingCode] = useState(" +1");
 
-  const [showCountryOptions, setShowCountryOptions] = useState(false);
-  const countryDropdownRef = useRef(null);
+  const [selectedOption, setSelectedOption] = useState({
+    country: "United States",
+    code: " +1",
+    iso: "US",
+    cca3: "USA",
+  });
 
-  const handleGlobalClick = (event) => {
-    // Close dropdowns if the click is outside of them
-    if (
-      countryDropdownRef.current &&
-      !countryDropdownRef.current.contains(event.target)
-    ) {
-      setShowCountryOptions(false);
-    }
-  };
+  const [imageUrlSet, setImageUrl] = useState("https://flagcdn.com/h40/us.png");
+  const [imageSearchUrlSet, setImageSearchUrl] = useState(
+    "https://flagcdn.com/h40/us.png"
+  );
 
-  useEffect(() => {
-    // Add global click event listener
-    document.addEventListener("click", handleGlobalClick);
-
-    // Remove the event listener when the component unmounts
-    return () => {
-      document.removeEventListener("click", handleGlobalClick);
-    };
-  }, []);
+  const [searchText, setSearchText] = useState(
+    `${selectedOption?.country} (${selectedOption?.code})`
+  );
 
   const Escrow = [
     {
@@ -103,11 +99,6 @@ function UserDetails() {
       setPhone(user?.phone ? user?.phone : "");
     }
   }, [user]);
-
-  const phoneCountry = () => {
-    const result = listData.find((item) => item?.code === country);
-    return `https://flagcdn.com/h40/${result?.iso?.toLowerCase()}.png`;
-  };
 
   const dipositeViewDetailsHandler = () => {
     navigate("/userdeposithistory");
@@ -287,16 +278,6 @@ function UserDetails() {
       }
     });
   };
-
-  const toggleCountryOptions = () => {
-    setShowCountryOptions(!showCountryOptions);
-  };
-
-  const countryChange = (value) => {
-    setCountry(value);
-    setShowCountryOptions(false);
-  };
-
   const acceptUserKyc = (id) => {
     Swal.fire({
       title: "Are you sure?",
@@ -326,7 +307,7 @@ function UserDetails() {
     });
   };
 
-  const emailVerification= () => {
+  const emailVerification = () => {
     Swal.fire({
       title: "Are you sure?",
       text: "Do you want to verified this Email?",
@@ -340,7 +321,11 @@ function UserDetails() {
           jwtAxios
             .put(`/users/userEmailVerified/${id}`)
             .then((res) => {
-              Swal.fire("Verified!", "Email Verified Successfully...", "success");
+              Swal.fire(
+                "Verified!",
+                "Email Verified Successfully...",
+                "success"
+              );
               setUser(res?.data.users);
             })
             .catch((err) => {
@@ -355,7 +340,7 @@ function UserDetails() {
     });
   };
 
-  const phoneVerification= () => {
+  const phoneVerification = () => {
     Swal.fire({
       title: "Are you sure?",
       text: "Do you want to verified this Phone?",
@@ -369,7 +354,11 @@ function UserDetails() {
           jwtAxios
             .put(`/users/userMobileVerified/${id}`)
             .then((res) => {
-              Swal.fire("Verified!", "Phone Verified Successfully...", "success");
+              Swal.fire(
+                "Verified!",
+                "Phone Verified Successfully...",
+                "success"
+              );
               setUser(res?.data.users);
             })
             .catch((err) => {
@@ -384,7 +373,6 @@ function UserDetails() {
     });
   };
 
-
   return (
     <>
       <div className="mainuserdetails">
@@ -395,7 +383,7 @@ function UserDetails() {
           <div className="UserDetailLeft">
             <div className="userdetails-smallcard grid gap-6 mb-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3">
               <div className={`common-card active`}>
-                <div className="flex flex-wrap justify-between mb-[23px]">
+                <div className="flex  justify-between mb-[23px]">
                   <span className="title text-xs not-italic font-medium leading-5">
                     Balance
                   </span>
@@ -411,7 +399,7 @@ function UserDetails() {
                 </h2>
               </div>
               <div className={`common-card`}>
-                <div className="flex flex-wrap justify-between mb-[23px]">
+                <div className="flex justify-between mb-[23px]">
                   <span className="title text-xs not-italic font-medium leading-5">
                     Deposited
                   </span>
@@ -427,7 +415,7 @@ function UserDetails() {
                 </h2>
               </div>
               <div className={`common-card`}>
-                <div className="flex flex-wrap justify-between mb-[23px]">
+                <div className="flex justify-between mb-[23px]">
                   <span className="title text-xs not-italic font-medium leading-5">
                     Withdrawan
                   </span>
@@ -461,8 +449,9 @@ function UserDetails() {
                   <p className="title">First name (required)</p>
                   <input
                     type="text"
-                    className="bg-transparent text-white w-full mt-[5px] mb-0 mx-0"
+                    className="bg-transparent text-white w-full mt-[5px] mb-0 mx-0 border-0 user-details-input"
                     name="fname"
+                    placeholder="John"
                     value={fname}
                     onChange={(e) => onChange(e)}
                   />
@@ -471,9 +460,10 @@ function UserDetails() {
                   <p className="title">Last name (optional)</p>
                   <input
                     type="text"
-                    className="bg-transparent text-white w-full mt-[5px] mb-0 mx-0"
+                    className="bg-transparent text-white w-full mt-[5px] mb-0 mx-0 border-0 user-details-input"
                     name="lname"
                     value={lname}
+                    placeholder="Doe"
                     onChange={(e) => onChange(e)}
                   />
                 </div>
@@ -481,7 +471,7 @@ function UserDetails() {
                   <p className="title">Email (required)</p>
                   <input
                     type="text"
-                    className="bg-transparent text-white w-full mt-[5px] mb-0 mx-0"
+                    className="bg-transparent text-white w-full mt-[5px] mb-0 mx-0 border-0 user-details-input"
                     name="email"
                     placeholder="your@email.com"
                     value={email}
@@ -490,7 +480,87 @@ function UserDetails() {
                 </div>
                 <div className="innercard phonenumber">
                   <p className="title">Phone number (required)</p>
-                  <div className="flex justify-between">
+                  <div
+                    className={`flex items-center phone-number-dropdown justify-between relative pt-3`}
+                  >
+                    {!isMobile && (
+                      <>
+                        <Form.Control
+                          placeholder={countryCallingCode}
+                          name="phone"
+                          type="text"
+                          value={phone}
+                          onChange={(e) => {
+                            onChange(e);
+                          }}
+                          maxLength="10"
+                          className="w-full"
+                        />
+                        <div className="text-center relative mobile-setting-dropdown flex items-center">
+                          {selectedOption?.code ? (
+                            <img
+                              src={imageUrlSet}
+                              alt="Flag"
+                              className="circle-data"
+                            />
+                          ) : (
+                            "No Flag"
+                          )}
+                          <SelectOptionDropdown
+                            imageUrlSet={imageUrlSet}
+                            setImageUrl={setImageUrl}
+                            selectedOption={selectedOption}
+                            setSelectedOption={setSelectedOption}
+                            setCountryCallingCode={setCountryCallingCode}
+                            countryCallingCode={countryCallingCode}
+                            setSearchText={setSearchText}
+                            searchText={searchText}
+                            setImageSearchUrl={setImageSearchUrl}
+                            imageSearchUrlSet={imageSearchUrlSet}
+                          />
+                        </div>
+                      </>
+                    )}
+                    {isMobile && (
+                      <>
+                        <Form.Control
+                          placeholder={countryCallingCode}
+                          name="phone"
+                          type="text"
+                          value={phone}
+                          onChange={(e) => {
+                            onChange(e);
+                          }}
+                          maxLength="10"
+                          className="md:w-auto w-full"
+                        />
+                        <div className="text-center relative mobile-setting-dropdown flex items-center">
+                          {selectedOption?.code ? (
+                            <img
+                              src={imageUrlSet}
+                              alt="Flag"
+                              className="circle-data"
+                            />
+                          ) : (
+                            "No Flag"
+                          )}
+                          <SelectOptionDropdown
+                            imageUrlSet={imageUrlSet}
+                            setImageUrl={setImageUrl}
+                            selectedOption={selectedOption}
+                            setSelectedOption={setSelectedOption}
+                            setCountryCallingCode={setCountryCallingCode}
+                            countryCallingCode={countryCallingCode}
+                            setSearchText={setSearchText}
+                            searchText={searchText}
+                            setImageSearchUrl={setImageSearchUrl}
+                            imageSearchUrlSet={imageSearchUrlSet}
+                          />
+                        </div>
+                      </>
+                    )}
+                  </div>
+                  {/* <div className="flex justify-between">
                     <input
                       type="text"
                       className="bg-transparent text-white w-full mt-[5px] mb-0 mx-0"
@@ -536,7 +606,7 @@ function UserDetails() {
                         )}
                       </div>
                     </div>
-                  </div>
+                  </div> */}
                 </div>
               </div>
               <div className="flex flex-wrap -mx-2 my-0 mt-6 gap-4 sm:gap-0">
@@ -569,22 +639,26 @@ function UserDetails() {
               <div className="mb-5">
                 <h3 className="text-white mb-[18px]">User Information</h3>
                 <div className="pb-3 border-b-[rgba(222,222,222,0.19)] border-b border-solid">
-                  {(user?.email_verified === 0 || user?.email_verified === undefined)  ? (
-                       <div className="mb-4 relative verification-row  flex flex-wrap justify-between">
-                       <div className="sm:pr-[120px] sm:w-full lg:min-h-[52px]">
-                         <h4 className="text-white mb-[7px]">
-                           Email Verification
-                         </h4>
-                         <span className="text-[rgba(255,255,255,0.60)] text-sm font-normal leading-[23px]">
-                           Verify
-                         </span>
-                       </div>
-                       <button className="sm:absolute top-0 right-0 GradiantBtn" onClick={emailVerification}>
-                         Verify
-                       </button>
-                     </div>
-                    ) : (user?.email_verified === 1  ? (
-                      <div className="mb-4 relative verification-row  flex flex-wrap justify-between">
+                  {user?.email_verified === 0 ||
+                  user?.email_verified === undefined ? (
+                    <div className="mb-4 relative verification-row  flex flex-wrap justify-between">
+                      <div className="sm:pr-[120px] sm:w-full lg:min-h-[52px]">
+                        <h4 className="text-white mb-[7px]">
+                          Email Verification
+                        </h4>
+                        <span className="text-[rgba(255,255,255,0.60)] text-sm font-normal leading-[23px]">
+                          Verify
+                        </span>
+                      </div>
+                      <button
+                        className="sm:absolute top-0 right-0 GradiantBtn"
+                        onClick={emailVerification}
+                      >
+                        Verify
+                      </button>
+                    </div>
+                  ) : user?.email_verified === 1 ? (
+                    <div className="mb-4 relative verification-row  flex flex-wrap justify-between">
                       <div className="sm:pr-[120px] sm:w-full lg:min-h-[52px]">
                         <h4 className="text-white mb-[7px]">
                           Email Verification
@@ -593,44 +667,51 @@ function UserDetails() {
                           Verified
                         </span>
                       </div>
-                      <button className="sm:absolute top-0 right-0 GradiantBtn" 
-                      disabled={user?.email_verified === 1}>
-                      Verified
+                      <button
+                        className="sm:absolute top-0 right-0 GradiantBtn"
+                        disabled={user?.email_verified === 1}
+                      >
+                        Verified
                       </button>
                     </div>
-                   ): null)}
+                  ) : null}
 
-                   {(user?.phone_verified === 0 || user?.phone_verified === undefined)  ? (
-                      <div className="mb-4 relative verification-row  flex flex-wrap justify-between">
-                        <div className="sm:pr-[120px] sm:w-full lg:min-h-[52px]">
-                          <h4 className="text-white mb-[7px]">
-                            Phone Verification
-                          </h4>
-                          <span className="text-[rgba(255,255,255,0.60)] text-sm font-normal leading-[23px]">
-                            Verify
-                          </span>
-                        </div>
-                        <button className="sm:absolute top-0 right-0 GradiantBtn" onClick={phoneVerification}>
+                  {user?.phone_verified === 0 ||
+                  user?.phone_verified === undefined ? (
+                    <div className="mb-4 relative verification-row  flex flex-wrap justify-between">
+                      <div className="sm:pr-[120px] sm:w-full lg:min-h-[52px]">
+                        <h4 className="text-white mb-[7px]">
+                          Phone Verification
+                        </h4>
+                        <span className="text-[rgba(255,255,255,0.60)] text-sm font-normal leading-[23px]">
                           Verify
-                        </button>
+                        </span>
                       </div>
-                    ) : (user?.phone_verified === 1  ? (
-                      <div className="mb-4 relative verification-row  flex flex-wrap justify-between">
-                        <div className="sm:pr-[120px] sm:w-full lg:min-h-[52px]">
-                          <h4 className="text-white mb-[7px]">
-                            Mobile Verification
-                          </h4>
-                          <span className="text-[rgba(255,255,255,0.60)] text-sm font-normal leading-[23px]">
-                            Verified
-                          </span>
-                        </div>
-                        <button className="sm:absolute top-0 right-0 GradiantBtn"
-                          disabled={user?.phone_verified === 1}
-                        >
+                      <button
+                        className="sm:absolute top-0 right-0 GradiantBtn"
+                        onClick={phoneVerification}
+                      >
+                        Verify
+                      </button>
+                    </div>
+                  ) : user?.phone_verified === 1 ? (
+                    <div className="mb-4 relative verification-row  flex flex-wrap justify-between">
+                      <div className="sm:pr-[120px] sm:w-full lg:min-h-[52px]">
+                        <h4 className="text-white mb-[7px]">
+                          Mobile Verification
+                        </h4>
+                        <span className="text-[rgba(255,255,255,0.60)] text-sm font-normal leading-[23px]">
                           Verified
-                        </button>
+                        </span>
                       </div>
-                   ): null)}
+                      <button
+                        className="sm:absolute top-0 right-0 GradiantBtn"
+                        disabled={user?.phone_verified === 1}
+                      >
+                        Verified
+                      </button>
+                    </div>
+                  ) : null}
 
                   <div className="mb-4 relative verification-row  flex flex-wrap justify-between">
                     <div className="sm:pr-[120px] sm:w-full lg:min-h-[52px]">
@@ -697,24 +778,25 @@ function UserDetails() {
                       </div>
                     ) : null)}
 
-                  {( (user?.kyc_completed === false && user?.is_verified === 0 ) || 
-                  (user?.kyc_completed === undefined && user?.is_verified === undefined )) ? (
-                      <div className="mb-4 relative verification-row  flex flex-wrap justify-between">
-                        <div className="sm:pr-[120px] sm:w-full lg:min-h-[52px]">
-                          <h4 className="text-white mb-[7px]">KYC</h4>
-                          <span className="text-[rgba(255,255,255,0.60)] text-sm font-normal leading-[23px]">
-                            Pending
-                          </span>
-                        </div>
-                        <button
-                          className="sm:absolute top-0 right-0 GradiantBtn"
-                          onClick={() => acceptUserKyc(id)}
-                          disabled={user?.is_verified === 0}
-                        >
+                  {(user?.kyc_completed === false && user?.is_verified === 0) ||
+                  (user?.kyc_completed === undefined &&
+                    user?.is_verified === undefined) ? (
+                    <div className="mb-4 relative verification-row  flex flex-wrap justify-between">
+                      <div className="sm:pr-[120px] sm:w-full lg:min-h-[52px]">
+                        <h4 className="text-white mb-[7px]">KYC</h4>
+                        <span className="text-[rgba(255,255,255,0.60)] text-sm font-normal leading-[23px]">
                           Pending
-                        </button>
+                        </span>
                       </div>
-                    ) : null}
+                      <button
+                        className="sm:absolute top-0 right-0 GradiantBtn"
+                        onClick={() => acceptUserKyc(id)}
+                        disabled={user?.is_verified === 0}
+                      >
+                        Pending
+                      </button>
+                    </div>
+                  ) : null}
                 </div>
               </div>
               <div className="UserManagement">
@@ -729,7 +811,9 @@ function UserDetails() {
                     <Link to={`/userloginhistory/${id}`}>Logins Log</Link>
                   </li>
                   <li>
-                    <Link to={`/reportedUser/${user?.wallet_address}`}>Report Users</Link>
+                    <Link to={`/reportedUser/${user?.wallet_address}`}>
+                      Report Users
+                    </Link>
                   </li>
                   <li className="">
                     <Link to="">Notification</Link>
@@ -761,10 +845,10 @@ function UserDetails() {
             <h3 className="text-[rgba(255,255,255,0.60)] text-xs not-italic font-bold leading-[18px] mb-[3px]">
               Amount
             </h3>
-            <div className="flex flex-wrap items-center justify-between">
+            <div className="flex items-center justify-between">
               <input
                 type="text"
-                className="h-[42px] w-[182px] bg-transparent text-white text-base not-italic font-normal leading-[42px] font-family: Inter;"
+                className="h-[42px] w-full bg-transparent text-white text-base not-italic font-normal leading-[42px] font-inter border-0 "
                 placeholder="0.0"
               />
               <label className="text-white text-lg not-italic font-medium leading-6">

@@ -11,7 +11,6 @@ function ReportUserList() {
   const [users, setUsers] = useState(null);
   const [totalUsersCount, setTotalUsersCount] = useState(0);
   const [searchTrnx, setSearchTrnx] = useState(null);
- console.log("searchTrnx ", searchTrnx);
   const [isComponentMounted, setIsComponentMounted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [debouncedSearchValue, setDebouncedSearchValue] = useState("");
@@ -75,7 +74,7 @@ function ReportUserList() {
                 setSearchQuery={setSearchTrnx}
               />
             </div>
-            <div className="kyc-common-table">
+            <div className="kyc-common-table table-responsive">
               <div className="w-[900px] xl:w-full clsTable">
                 <div className="flex-table-header">
                   <div className="transaction-user kycHead">User Report From</div>
@@ -117,7 +116,7 @@ function ReportUserList() {
                   <div className="flex-table-body no-records justify-content-between">
                     <div className="no-records-text">
                       <div className="no-record-label">No Records</div>
-                      <p>You haven't any Report users records</p>
+                      <p>You haven't made any Report users records</p>
                     </div>
                   </div>
                 )}

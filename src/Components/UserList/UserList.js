@@ -18,6 +18,7 @@ function UserList() {
   const [userLoading, setUserLoading] = useState(true);
 
   const [totalActiveCount, setTotalActiveCount] = useState(0);
+  const [AllUserCount, setAllUserCount] = useState(0);
   const [totalBanCount, setTotalBanCount] = useState(0);
   const [totalEmailCount, setTotalEmailCount] = useState(0);
   const [totalPhoneCount, setTotalPhoneCount] = useState(0);
@@ -35,6 +36,7 @@ function UserList() {
         .then((res) => {
           setUsers(res.data?.users);
           setTotalUsersCount(res.data?.totalUsersCount);
+          setAllUserCount(res.data?.allUserCount)
           setTotalActiveCount(res.data?.activeCount);
           setTotalBanCount(res.data?.banCount);
           setTotalEmailCount(res.data?.emailCount);
@@ -89,7 +91,7 @@ function UserList() {
                   onClick={() => changeStatus('All')}
                 >
                   All
-                  <span className="number">{totalUsersCount > 50 ? '50+' : totalUsersCount}</span>
+                  <span className="number">{AllUserCount > 50 ? '50+' : AllUserCount}</span>
                 </Link>
               </li>
 
@@ -99,7 +101,7 @@ function UserList() {
                   onClick={() => changeStatus('Active')}
                 >
                   Active Users
-                  <span className="number">{totalActiveCount}</span>
+                  <span className="number">{totalActiveCount > 50 ? '50+' : totalActiveCount}</span>
                 </Link>
               </li>
               <li>

@@ -18,10 +18,7 @@ import {
   CancelIcon,
   DownloadIcon,
 } from "../SVGIcon";
-import {
-  Dialog,
-  DialogHeader
-} from "@material-tailwind/react";
+import { Dialog, DialogHeader } from "@material-tailwind/react";
 
 function Kyclist() {
   let foundCountry = null;
@@ -41,8 +38,8 @@ function Kyclist() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
   const [showOptions, setShowOptions] = useState(false);
-  const [selectedItem, setSelectedItem] = useState(null); 
-  const [selectedPendingItem, setSelectedPendingItem] = useState(null); 
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [selectedPendingItem, setSelectedPendingItem] = useState(null);
 
   const countryDropdownRef = useRef(null);
   const optionsDropdownRef = useRef(null);
@@ -55,7 +52,7 @@ function Kyclist() {
   if (viewKYC?.user?.location) {
     foundCountry = countryMap[viewKYC?.user?.location];
   }
-  
+
   if (viewKYC?.user?.dob) {
     formattedDate = moment(viewKYC?.user?.dob, "DD/MM/YYYY").format(
       "D MMMM, YYYY"
@@ -269,9 +266,9 @@ function Kyclist() {
   const toggleOptions = (itemId) => {
     setShowOptions(!showOptions);
     setIsDropdownVisible(false);
-    setSelectedPendingItem(itemId)
+    setSelectedPendingItem(itemId);
   };
-  
+
   const toggleCountryOptions = (itemId) => {
     setIsDropdownVisible(!isDropdownVisible);
     setShowOptions(false); // Hide the options dropdown if it's visible
@@ -327,7 +324,7 @@ function Kyclist() {
                 setSearchQuery={setSearchTrnx}
               />
             </div>
-            <div className="kyc-common-table">
+            <div className="kyc-common-table table-responsive">
               <div className="w-[900px] xl:w-full clsTable">
                 <div className="flex-table-header">
                   <div className="transaction-user kycHead">User</div>
@@ -336,7 +333,7 @@ function Kyclist() {
                   <div className="transaction-doc-download kycHead"></div>
                   <div className="transaction-type kycHead">Type</div>
                 </div>
-                 
+
                 {users?.map((item, index) => (
                   <div className="flex-table-body tr" key={index}>
                     <div className="transaction-user tcol">
@@ -356,23 +353,23 @@ function Kyclist() {
                     </div>
                     <div className="transaction-documents  tcol">
                       <p className="text-white mb-2">Document Image</p>
-                        {item?.passport_url && item?.passport_url !== "" ? (
-                          <>
-                            <a
-                              className="passport-image"
-                              style={{ color: "gray", texdivecoration: "none" }}
-                              onClick={() =>
-                                handlePassportImageDownload(item?._id)
-                              }
-                              download
-                            >
-                              <DownloadIcon width="18" height="18" />
-                              Download
-                            </a>
-                          </>
-                        ) : (
-                          <p>No Image</p>
-                        )}
+                      {item?.passport_url && item?.passport_url !== "" ? (
+                        <>
+                          <a
+                            className="passport-image"
+                            style={{ color: "gray", texdivecoration: "none" }}
+                            onClick={() =>
+                              handlePassportImageDownload(item?._id)
+                            }
+                            download
+                          >
+                            <DownloadIcon width="18" height="18" />
+                            Download
+                          </a>
+                        </>
+                      ) : (
+                        <p>No Image</p>
+                      )}
                     </div>
                     <div className="transaction-doc-download  tcol">
                       <p className="text-white mb-2">User Image</p>
@@ -399,7 +396,7 @@ function Kyclist() {
                             Rejected
                           </button>
                         )}
-                         {item?.is_verified === 1 && (
+                        {item?.is_verified === 1 && (
                           <button type="button" className="table-btn succeed">
                             Approved
                           </button>
@@ -410,44 +407,45 @@ function Kyclist() {
                             Pending
                           </button>
                         )}
-                        {(item?.is_verified === 1  || item?.is_verified === 2) && (
+                        {(item?.is_verified === 1 ||
+                          item?.is_verified === 2) && (
                           <>
                             <div className="drop-start">
                               <div
                                 className="dropdown-toggle btn btn-secondary"
                                 ref={countryDropdownRef}
                                 onClick={() => toggleCountryOptions(item._id)}
-                                
                               >
                                 <SimpleDotedIcon width="20" height="20" />
                               </div>
 
-                              {(isDropdownVisible  && selectedItem === item._id)  && (
-                                <>
-                                  <div className="dropdown-menu show">
-                                    <button
-                                      className="btn btn-link"
-                                      onClick={() => modalToggle(item?._id)}
-                                      variant="gradient"
-                                    >
-                                      <EyeIcon width="22" height="22" /> View
-                                      Details
-                                    </button>
+                              {isDropdownVisible &&
+                                selectedItem === item._id && (
+                                  <>
+                                    <div className="dropdown-menu show">
+                                      <button
+                                        className="btn btn-link"
+                                        onClick={() => modalToggle(item?._id)}
+                                        variant="gradient"
+                                      >
+                                        <EyeIcon width="22" height="22" /> View
+                                        Details
+                                      </button>
 
-                                    <button
-                                      className="btn btn-link"
-                                      onClick={() => deleteUserKyc(item?._id)}
-                                    >
-                                      <TrashIcon width="22" height="20" />
-                                      Delete
-                                    </button>
-                                  </div>
-                                </>
-                              )}
+                                      <button
+                                        className="btn btn-link"
+                                        onClick={() => deleteUserKyc(item?._id)}
+                                      >
+                                        <TrashIcon width="22" height="20" />
+                                        Delete
+                                      </button>
+                                    </div>
+                                  </>
+                                )}
                             </div>
                           </>
                         )}
-                        
+
                         {item?.is_verified === 0 && (
                           <>
                             <div className="drop-start">
@@ -459,57 +457,57 @@ function Kyclist() {
                                 <SimpleDotedIcon width="20" height="20" />
                               </div>
 
-                              {(showOptions && selectedPendingItem === item._id) && (
-                                <>
-                                  <div className="dropdown-menu show">
-                                    <button
-                                      className="btn btn-link"
-                                      onClick={() => modalToggle(item?._id)}
-                                      variant="gradient"
-                                    >
-                                      <EyeIcon width="22" height="22" /> View
-                                      Details
-                                    </button>
+                              {showOptions &&
+                                selectedPendingItem === item._id && (
+                                  <>
+                                    <div className="dropdown-menu show">
+                                      <button
+                                        className="btn btn-link"
+                                        onClick={() => modalToggle(item?._id)}
+                                        variant="gradient"
+                                      >
+                                        <EyeIcon width="22" height="22" /> View
+                                        Details
+                                      </button>
 
-                                    {item?.is_verified === 0 && (
-                                      <>
-                                        <button
-                                          className="btn btn-link"
-                                          onClick={() =>
-                                            acceptUserKyc(item?._id)
-                                          }
-                                        >
-                                          <CheckBoxIcon
-                                            width="22"
-                                            height="15"
-                                          />
-                                          Approve
-                                        </button>
-                                        <button
-                                          className="btn btn-link"
-                                          onClick={() =>
-                                            rejectUserKyc(item?._id)
-                                          }
-                                        >
-                                          <CancelIcon
-                                            width="22"
-                                            height="16"
-                                          />
-                                          Cancel
-                                        </button>
-                                      </>
-                                    )}
-                                    <button
-                                      className="btn btn-link"
-                                      onClick={() => deleteUserKyc(item?._id)}
-                                    >
-                                      <TrashIcon width="22" height="20" />
-                                      Delete
-                                    </button>
-                                  </div>
-                                </>
-                              )}
-
+                                      {item?.is_verified === 0 && (
+                                        <>
+                                          <button
+                                            className="btn btn-link"
+                                            onClick={() =>
+                                              acceptUserKyc(item?._id)
+                                            }
+                                          >
+                                            <CheckBoxIcon
+                                              width="22"
+                                              height="15"
+                                            />
+                                            Approve
+                                          </button>
+                                          <button
+                                            className="btn btn-link"
+                                            onClick={() =>
+                                              rejectUserKyc(item?._id)
+                                            }
+                                          >
+                                            <CancelIcon
+                                              width="22"
+                                              height="16"
+                                            />
+                                            Cancel
+                                          </button>
+                                        </>
+                                      )}
+                                      <button
+                                        className="btn btn-link"
+                                        onClick={() => deleteUserKyc(item?._id)}
+                                      >
+                                        <TrashIcon width="22" height="20" />
+                                        Delete
+                                      </button>
+                                    </div>
+                                  </>
+                                )}
                             </div>
                           </>
                         )}
@@ -521,7 +519,7 @@ function Kyclist() {
                   <div className="flex-table-body no-records justify-content-between">
                     <div className="no-records-text">
                       <div className="no-record-label">No Records</div>
-                      <p>You haven't any KYC records</p>
+                      <p>You haven't made any KYC records</p>
                     </div>
                   </div>
                 )}
@@ -537,10 +535,7 @@ function Kyclist() {
         />
       </div>
 
-      <Dialog
-        open={modalShow}
-        className="modal-content"
-      >
+      <Dialog open={modalShow} className="modal-content">
         <DialogHeader className="transaction-header modal-header">
           <div className="modal-title h4">
             KYC Detail
@@ -590,7 +585,6 @@ function Kyclist() {
               )}
             </>
           }
-
           <h3>Personal Information</h3>
           <div className="token-details">
             <div className="table-responsive">

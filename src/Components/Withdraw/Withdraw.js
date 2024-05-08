@@ -408,7 +408,7 @@ function Withdraw() {
       <Dialog
         open={open}
         handler={handleOpen}
-        className="DepositMobileMoney rounded-3xl bg-[#1E1F24] p-8 max-w-[1132px]"
+        className="DepositMobileMoney rounded-3xl bg-[#1E1F24] p-8 max-w-[1132px] "
       >
         <DialogHeader className="items-start flex flex-wrap justify-between mb-6 p-0 pr-9 gap-3">
           <h3 className="text-white pt-2">Widraw Detail</h3>
@@ -458,7 +458,6 @@ function Withdraw() {
                     </div>
                   ))}
                 </div>
-
                 <div className="grid sm:grid-cols-2 gap-[10px]">
                   <button
                     className="GradiantBtn"
