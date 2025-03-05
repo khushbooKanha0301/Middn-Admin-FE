@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { Form, Button } from "react-bootstrap";
 import {
-  Button,
   Dialog,
   DialogHeader,
   DialogBody,
@@ -15,11 +15,15 @@ import {
   notificationSuccess,
 } from "../../store/slices/notificationSlice";
 import Swal from "sweetalert2/src/sweetalert2.js";
+import { database, firebaseMessages } from "../../config";
+import { ref, set } from "@firebase/database";
+import SelectOptionDropdown from "../../Components/SelectOptionDropdown";
 
 function UserDetails() {
   const dispatch = useDispatch();
-  const [open, setOpen] = React.useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const [user, setUser] = React.useState({});
+  const [open, setOpen] = React.useState(false);
   const { id } = useParams();
   const handleOpen = () => setOpen(!open);
   const [country, setCountry] = React.useState(" +1");
@@ -28,6 +32,21 @@ function UserDetails() {
   const [lname, setLname] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [phone, setPhone] = React.useState("");
+  const [countryCallingCode, setCountryCallingCode] = useState(" +1");
+  const [selectedOption, setSelectedOption] = useState({
+    country: "United States",
+    code: " +1",
+    iso: "US",
+    cca3: "USA",
+  });
+  const [imageUrlSet, setImageUrl] = useState("https://flagcdn.com/h40/us.png");
+  const [imageSearchUrlSet, setImageSearchUrl] = useState(
+    "https://flagcdn.com/h40/us.png"
+  );
+
+  const [searchText, setSearchText] = useState(
+    `${selectedOption?.country} (${selectedOption?.code})`
+  );
 
   const Escrow = [
     {
@@ -77,16 +96,19 @@ function UserDetails() {
       setEmail(user?.email ? user?.email : "");
       setPhone(user?.phone ? user?.phone : "");
     }
+    if (user?.phoneCountry) {
+      setCountryCallingCode(user?.phoneCountry);
+      const result = listData.find((item) => item?.cca3 === (user?.cca3?.trim() || 'USA'));
+      setSelectedOption(result);
+      setImageUrl(`https://flagcdn.com/h40/${result?.iso?.toLowerCase()}.png`);
+      setSearchText(`${result?.country} (${result?.code})`);
+      setImageSearchUrl(
+        `https://flagcdn.com/h40/${result?.iso?.toLowerCase()}.png`
+      );
+    } else {
+      setCountryCallingCode(" +1");
+    }
   }, [user]);
-
-  const phoneCountry = () => {
-    const result = listData.find((item) => item?.code === country);
-    return `https://flagcdn.com/h40/${result?.iso?.toLowerCase()}.png`;
-  };
-
-  const countryChange = (e) => {
-    setCountry(e.target.value);
-  };
 
   const dipositeViewDetailsHandler = () => {
     navigate("/userdeposithistory");
@@ -133,7 +155,8 @@ function UserDetails() {
         lname: lname,
         email: email,
         phone: phone,
-        phoneCountry: country,
+        phoneCountry: selectedOption?.code,
+        cca3: selectedOption?.cca3
       };
       let response = await jwtAxios
         .put(`/users/updateUser/${id}`, formSubmit)
@@ -147,6 +170,8 @@ function UserDetails() {
           if (error?.response?.data?.message) {
             dispatch(notificationFail(error?.response?.data?.message));
           }
+          // Refresh user details after an error occurs
+          getUserDetails();
         });
       if (response) {
         setUser(response?.data.User);
@@ -158,7 +183,7 @@ function UserDetails() {
   const banUserHandler = async () => {
     Swal.fire({
       title: "Are you sure?",
-      text: "Do you want to Ban this user?",
+      text: "Do you want to Banned this user?",
       showCancelButton: true,
       confirmButtonColor: "red",
       cancelButtonColor: "#808080",
@@ -166,13 +191,77 @@ function UserDetails() {
       customClass: {
         popup: "suspend",
       },
-    }).then(async (result) => {});
+    }).then(async (result) => {
+      jwtAxios
+        .put(`/users/bannedUser/${id}`)
+        .then((res) => {
+          Swal.fire("Banned!", "This User has been Banned ...", "danger");
+          setUser(res?.data.users);
+          set(
+            ref(
+              database,
+              firebaseMessages.Middn_USERS + "/" + id + "/is_active"
+            ),
+            true
+          );
+        })
+        .catch((error) => {
+          if (typeof error == "string") {
+            dispatch(notificationFail(error));
+          }
+          if (error?.response?.data?.message === "") {
+            dispatch(notificationFail("Invalid "));
+          }
+          if (error?.response?.data?.message) {
+            dispatch(notificationFail(error?.response?.data?.message));
+          }
+        });
+    });
   };
 
-  const twoFADisableHandler = async () => {
+  const activeUserHandler = async () => {
     Swal.fire({
       title: "Are you sure?",
-      text: "Do you want to disable this user's google 2FA?",
+      text: "Do you want to Active this user?",
+      showCancelButton: true,
+      confirmButtonColor: "red",
+      cancelButtonColor: "#808080",
+      confirmButtonText: "Yes",
+      customClass: {
+        popup: "suspend",
+      },
+    }).then(async (result) => {
+      jwtAxios
+        .put(`/users/activeUser/${id}`)
+        .then((res) => {
+          Swal.fire("Activated!", "This User has been Activated...", "success");
+          setUser(res?.data.users);
+          set(
+            ref(
+              database,
+              firebaseMessages.Middn_USERS + "/" + id + "/is_active"
+            ),
+            false
+          );
+        })
+        .catch((error) => {
+          if (typeof error == "string") {
+            dispatch(notificationFail(error));
+          }
+          if (error?.response?.data?.message === "") {
+            dispatch(notificationFail("Invalid "));
+          }
+          if (error?.response?.data?.message) {
+            dispatch(notificationFail(error?.response?.data?.message));
+          }
+        });
+    });
+  };
+
+  const twoFADisableHandler = async (isSMSCall=0) => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: `Do you want to disable this user's ${isSMSCall === 0 ? 'google' : 'SMS'} 2FA?`,
       showCancelButton: true,
       confirmButtonColor: "red",
       cancelButtonColor: "#808080",
@@ -183,7 +272,7 @@ function UserDetails() {
     }).then(async (result) => {
       if (result.isConfirmed) {
         let response = await jwtAxios
-          .post(`/users/twoFADisableUser/${id}`, {})
+          .post(`/users/${isSMSCall === 0 ? 'twoFADisableUser' :'twoFASMSDisableUser'}/${id}`, {})
           .catch((error) => {
             if (typeof error == "string") {
               dispatch(notificationFail(error));
@@ -203,6 +292,101 @@ function UserDetails() {
     });
   };
 
+  const acceptUserKyc = (id) => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "Do you want to approve this KYC application?",
+      showCancelButton: true,
+      confirmButtonColor: "green",
+      cancelButtonColor: "#808080",
+      confirmButtonText: "Approve",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        if (id) {
+          jwtAxios
+            .get(`/users/acceptKyc/${id}`)
+            .then((res) => {
+              Swal.fire("Approved!", "KYC approved successfully...", "success");
+              setUser(res?.data.users);
+            })
+            .catch((err) => {
+              if (typeof err == "string") {
+                dispatch(notificationFail(err));
+              } else {
+                dispatch(notificationFail(err?.response?.data?.message));
+              }
+            });
+        }
+      }
+    });
+  };
+
+  const emailVerification = () => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "Do you want to verified this Email?",
+      showCancelButton: true,
+      confirmButtonColor: "green",
+      cancelButtonColor: "#808080",
+      confirmButtonText: "Verified",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        if (id) {
+          jwtAxios
+            .put(`/users/userEmailVerified/${id}`)
+            .then((res) => {
+              Swal.fire(
+                "Verified!",
+                "Email Verified Successfully...",
+                "success"
+              );
+              setUser(res?.data.users);
+            })
+            .catch((err) => {
+              if (typeof err == "string") {
+                dispatch(notificationFail(err));
+              } else {
+                dispatch(notificationFail(err?.response?.data?.message));
+              }
+            });
+        }
+      }
+    });
+  };
+
+  const phoneVerification = () => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "Do you want to verified this Phone?",
+      showCancelButton: true,
+      confirmButtonColor: "green",
+      cancelButtonColor: "#808080",
+      confirmButtonText: "Verified",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        if (id) {
+          jwtAxios
+            .put(`/users/userMobileVerified/${id}`)
+            .then((res) => {
+              Swal.fire(
+                "Verified!",
+                "Phone Verified Successfully...",
+                "success"
+              );
+              setUser(res?.data.users);
+            })
+            .catch((err) => {
+              if (typeof err == "string") {
+                dispatch(notificationFail(err));
+              } else {
+                dispatch(notificationFail(err?.response?.data?.message));
+              }
+            });
+        }
+      }
+    });
+  };
+
   return (
     <>
       <div className="mainuserdetails">
@@ -213,7 +397,7 @@ function UserDetails() {
           <div className="UserDetailLeft">
             <div className="userdetails-smallcard grid gap-6 mb-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3">
               <div className={`common-card active`}>
-                <div className="flex flex-wrap justify-between mb-[23px]">
+                <div className="flex  justify-between mb-[23px]">
                   <span className="title text-xs not-italic font-medium leading-5">
                     Balance
                   </span>
@@ -229,7 +413,7 @@ function UserDetails() {
                 </h2>
               </div>
               <div className={`common-card`}>
-                <div className="flex flex-wrap justify-between mb-[23px]">
+                <div className="flex justify-between mb-[23px]">
                   <span className="title text-xs not-italic font-medium leading-5">
                     Deposited
                   </span>
@@ -245,7 +429,7 @@ function UserDetails() {
                 </h2>
               </div>
               <div className={`common-card`}>
-                <div className="flex flex-wrap justify-between mb-[23px]">
+                <div className="flex justify-between mb-[23px]">
                   <span className="title text-xs not-italic font-medium leading-5">
                     Withdrawan
                   </span>
@@ -279,8 +463,9 @@ function UserDetails() {
                   <p className="title">First name (required)</p>
                   <input
                     type="text"
-                    className="bg-transparent text-white w-full mt-[5px] mb-0 mx-0"
+                    className="bg-transparent text-white w-full mt-[5px] mb-0 mx-0 border-0 user-details-input"
                     name="fname"
+                    placeholder="John"
                     value={fname}
                     onChange={(e) => onChange(e)}
                   />
@@ -289,9 +474,10 @@ function UserDetails() {
                   <p className="title">Last name (optional)</p>
                   <input
                     type="text"
-                    className="bg-transparent text-white w-full mt-[5px] mb-0 mx-0"
+                    className="bg-transparent text-white w-full mt-[5px] mb-0 mx-0 border-0 user-details-input"
                     name="lname"
                     value={lname}
+                    placeholder="Doe"
                     onChange={(e) => onChange(e)}
                   />
                 </div>
@@ -299,7 +485,7 @@ function UserDetails() {
                   <p className="title">Email (required)</p>
                   <input
                     type="text"
-                    className="bg-transparent text-white w-full mt-[5px] mb-0 mx-0"
+                    className="bg-transparent text-white w-full mt-[5px] mb-0 mx-0 border-0 user-details-input"
                     name="email"
                     placeholder="your@email.com"
                     value={email}
@@ -308,36 +494,44 @@ function UserDetails() {
                 </div>
                 <div className="innercard phonenumber">
                   <p className="title">Phone number (required)</p>
-                  <div className="flex justify-between">
-                    <input
-                      type="text"
-                      className="bg-transparent text-white w-full mt-[5px] mb-0 mx-0"
+                  <div
+                    className={`flex items-center phone-number-dropdown justify-between relative pt-3`}
+                  >
+                    <Form.Control
+                      placeholder={countryCallingCode}
                       name="phone"
-                      placeholder="+1"
+                      type="text"
                       value={phone}
                       onChange={(e) => onChange(e)}
+                      maxLength="10"
+                      className={isMobile ? "md:w-auto w-full" : "w-full"}
                     />
-                    <div className="country flex items-center">
-                      <span className="img w-8 h-8 rounded-full inline-block mr-[4px] bg-[#fff] overflow-hidden">
+                    <div
+                      className={`text-center flex items-center mobile-setting-dropdown ${
+                        isMobile ? "relative" : ""
+                      }`}
+                    >
+                      {selectedOption?.code ? (
                         <img
-                          src={phoneCountry()}
+                          src={imageUrlSet}
                           alt="Flag"
-                          className="circle-data h-full w-full object-cover"
+                          className="circle-data"
                         />
-                      </span>
-                      <p className="text-[16px] text-white mx-1">
-                        {listData.find((item) => item?.code === country)?.cca3}
-                      </p>
-                      <select label="Select Version" onChange={countryChange}>
-                        {listData.map((data) => (
-                          <option
-                            value={`${data?.code}`}
-                            key={`${data?.code}_${data?.country}`}
-                          >
-                            {data?.country} ({data?.code})
-                          </option>
-                        ))}
-                      </select>
+                      ) : (
+                        "No Flag"
+                      )}
+                      <SelectOptionDropdown
+                        imageUrlSet={imageUrlSet}
+                        setImageUrl={setImageUrl}
+                        selectedOption={selectedOption}
+                        setSelectedOption={setSelectedOption}
+                        setCountryCallingCode={setCountryCallingCode}
+                        countryCallingCode={countryCallingCode}
+                        setSearchText={setSearchText}
+                        searchText={searchText}
+                        setImageSearchUrl={setImageSearchUrl}
+                        imageSearchUrlSet={imageSearchUrlSet}
+                      />
                     </div>
                   </div>
                 </div>
@@ -349,12 +543,21 @@ function UserDetails() {
                 >
                   Save
                 </button>
-                <button
-                  className="PinkBtn w-[calc(100%_-_20px)] sm:w-[calc(50%_-_20px)] mx-2.5 my-0"
-                  onClick={banUserHandler}
-                >
-                  Ban User
-                </button>
+                {user.is_banned ? (
+                  <button
+                    className="GradiantBtn w-[calc(100%_-_20px)] sm:w-[calc(50%_-_20px)] mx-2.5 my-0"
+                    onClick={() => activeUserHandler()}
+                  >
+                    Active User
+                  </button>
+                ) : (
+                  <button
+                    className="PinkBtn w-[calc(100%_-_20px)] sm:w-[calc(50%_-_20px)] mx-2.5 my-0"
+                    onClick={() => banUserHandler()}
+                  >
+                    Ban User
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -363,32 +566,80 @@ function UserDetails() {
               <div className="mb-5">
                 <h3 className="text-white mb-[18px]">User Information</h3>
                 <div className="pb-3 border-b-[rgba(222,222,222,0.19)] border-b border-solid">
-                  <div className="mb-4 relative verification-row  flex flex-wrap justify-between">
-                    <div className="sm:pr-[120px] sm:w-full lg:min-h-[52px]">
-                      <h4 className="text-white mb-[7px]">
-                        Email Verification
-                      </h4>
-                      <span className="text-[rgba(255,255,255,0.60)] text-sm font-normal leading-[23px]">
-                        Verified
-                      </span>
+                  {!user?.email_verified ||
+                  user?.email_verified === undefined ? (
+                    <div className="mb-4 relative verification-row  flex flex-wrap justify-between">
+                      <div className="sm:pr-[120px] sm:w-full lg:min-h-[52px]">
+                        <h4 className="text-white mb-[7px]">
+                          Email Verification
+                        </h4>
+                        <span className="text-[rgba(255,255,255,0.60)] text-sm font-normal leading-[23px]">
+                          Verify
+                        </span>
+                      </div>
+                      <button
+                        className="sm:absolute top-0 right-0 GradiantBtn"
+                        onClick={emailVerification}
+                      >
+                        Verify
+                      </button>
                     </div>
-                    <button className="sm:absolute top-0 right-0 GradiantBtn">
-                      Verified
-                    </button>
-                  </div>
-                  <div className="mb-4 relative verification-row  flex flex-wrap justify-between">
-                    <div className="sm:pr-[120px] sm:w-full lg:min-h-[52px]">
-                      <h4 className="text-white mb-[7px]">
-                        Mobile Verification
-                      </h4>
-                      <span className="text-[rgba(255,255,255,0.60)] text-sm font-normal leading-[23px]">
+                  ) : user?.email_verified ? (
+                    <div className="mb-4 relative verification-row  flex flex-wrap justify-between">
+                      <div className="sm:pr-[120px] sm:w-full lg:min-h-[52px]">
+                        <h4 className="text-white mb-[7px]">
+                          Email Verification
+                        </h4>
+                        <span className="text-[rgba(255,255,255,0.60)] text-sm font-normal leading-[23px]">
+                          Verified
+                        </span>
+                      </div>
+                      <button
+                        className="sm:absolute top-0 right-0 GradiantBtn"
+                        disabled={user?.email_verified}
+                      >
                         Verified
-                      </span>
+                      </button>
                     </div>
-                    <button className="sm:absolute top-0 right-0 GradiantBtn">
-                      Verified
-                    </button>
-                  </div>
+                  ) : null}
+
+                  {user?.phone_verified === 0 ||
+                  user?.phone_verified === undefined ? (
+                    <div className="mb-4 relative verification-row  flex flex-wrap justify-between">
+                      <div className="sm:pr-[120px] sm:w-full lg:min-h-[52px]">
+                        <h4 className="text-white mb-[7px]">
+                          Phone Verification
+                        </h4>
+                        <span className="text-[rgba(255,255,255,0.60)] text-sm font-normal leading-[23px]">
+                          Verify
+                        </span>
+                      </div>
+                      <button
+                        className="sm:absolute top-0 right-0 GradiantBtn"
+                        onClick={phoneVerification}
+                      >
+                        Verify
+                      </button>
+                    </div>
+                  ) : user?.phone_verified === 1 ? (
+                    <div className="mb-4 relative verification-row  flex flex-wrap justify-between">
+                      <div className="sm:pr-[120px] sm:w-full lg:min-h-[52px]">
+                        <h4 className="text-white mb-[7px]">
+                          Mobile Verification
+                        </h4>
+                        <span className="text-[rgba(255,255,255,0.60)] text-sm font-normal leading-[23px]">
+                          Verified
+                        </span>
+                      </div>
+                      <button
+                        className="sm:absolute top-0 right-0 GradiantBtn"
+                        disabled={user?.phone_verified === 1}
+                      >
+                        Verified
+                      </button>
+                    </div>
+                  ) : null}
+
                   <div className="mb-4 relative verification-row  flex flex-wrap justify-between">
                     <div className="sm:pr-[120px] sm:w-full lg:min-h-[52px]">
                       <h4 className="text-white mb-[7px]">2FA Verification</h4>
@@ -398,7 +649,7 @@ function UserDetails() {
                     </div>
                     <button
                       className="sm:absolute top-0 right-0 PinkBtn"
-                      onClick={twoFADisableHandler}
+                      onClick={()=>twoFADisableHandler(0)}
                       disabled={!user.is_2FA_enabled}
                     >
                       {user.is_2FA_enabled ? "Disable" : "Disabled"}
@@ -406,15 +657,88 @@ function UserDetails() {
                   </div>
                   <div className="mb-4 relative verification-row  flex flex-wrap justify-between">
                     <div className="sm:pr-[120px] sm:w-full lg:min-h-[52px]">
-                      <h4 className="text-white mb-[7px]">KYC</h4>
+                      <h4 className="text-white mb-[7px]">SMS Verification</h4>
                       <span className="text-[rgba(255,255,255,0.60)] text-sm font-normal leading-[23px]">
-                        Verified
+                        {user.is_2FA_SMS_enabled ? "Enabled" : "Disabled"}
                       </span>
                     </div>
-                    <button className="sm:absolute top-0 right-0 GradiantBtn">
-                      Verified
+                    <button
+                      className="sm:absolute top-0 right-0 PinkBtn"
+                      onClick={()=>twoFADisableHandler(1)}
+                      disabled={!user.is_2FA_SMS_enabled}
+                    >
+                      {user.is_2FA_SMS_enabled ? "Disable" : "Disabled"}
                     </button>
                   </div>
+                  {user?.kyc_completed == true &&
+                    (user?.is_verified === 1 ? (
+                      <div className="mb-4 relative verification-row  flex flex-wrap justify-between">
+                        <div className="sm:pr-[120px] sm:w-full lg:min-h-[52px]">
+                          <h4 className="text-white mb-[7px]">KYC</h4>
+                          <span className="text-[rgba(255,255,255,0.60)] text-sm font-normal leading-[23px]">
+                            Verified
+                          </span>
+                        </div>
+                        <button
+                          className="sm:absolute top-0 right-0 GradiantBtn"
+                          onClick={() => acceptUserKyc(id)}
+                          disabled={user?.is_verified === 1}
+                        >
+                          Verified
+                        </button>
+                      </div>
+                    ) : user?.is_verified === 2 ? (
+                      <div className="mb-4 relative verification-row  flex flex-wrap justify-between">
+                        <div className="sm:pr-[120px] sm:w-full lg:min-h-[52px]">
+                          <h4 className="text-white mb-[7px]">KYC</h4>
+                          <span className="text-[rgba(255,255,255,0.60)] text-sm font-normal leading-[23px]">
+                            Rejected
+                          </span>
+                        </div>
+                        <button
+                          className="sm:absolute top-0 right-0 GradiantBtn"
+                          onClick={() => acceptUserKyc(id)}
+                          disabled={user?.is_verified === 2}
+                        >
+                          Rejected
+                        </button>
+                      </div>
+                    ) : user?.is_verified === 0 ? (
+                      <div className="mb-4 relative verification-row  flex flex-wrap justify-between">
+                        <div className="sm:pr-[120px] sm:w-full lg:min-h-[52px]">
+                          <h4 className="text-white mb-[7px]">KYC</h4>
+                          <span className="text-[rgba(255,255,255,0.60)] text-sm font-normal leading-[23px]">
+                            Verify
+                          </span>
+                        </div>
+                        <button
+                          className="sm:absolute top-0 right-0 GradiantBtn"
+                          onClick={() => acceptUserKyc(id)}
+                        >
+                          Verify
+                        </button>
+                      </div>
+                    ) : null)}
+
+                  {(user?.kyc_completed === false && user?.is_verified === 0) ||
+                  (user?.kyc_completed === undefined &&
+                    user?.is_verified === undefined) ? (
+                    <div className="mb-4 relative verification-row  flex flex-wrap justify-between">
+                      <div className="sm:pr-[120px] sm:w-full lg:min-h-[52px]">
+                        <h4 className="text-white mb-[7px]">KYC</h4>
+                        <span className="text-[rgba(255,255,255,0.60)] text-sm font-normal leading-[23px]">
+                          Pending
+                        </span>
+                      </div>
+                      <button
+                        className="sm:absolute top-0 right-0 GradiantBtn"
+                        onClick={() => acceptUserKyc(id)}
+                        disabled={user?.is_verified === 0}
+                      >
+                        Pending
+                      </button>
+                    </div>
+                  ) : null}
                 </div>
               </div>
               <div className="UserManagement">
@@ -427,6 +751,11 @@ function UserDetails() {
                   </li>
                   <li>
                     <Link to={`/userloginhistory/${id}`}>Logins Log</Link>
+                  </li>
+                  <li>
+                    <Link to={`/reportedUser/${user?.wallet_address}`}>
+                      Report Users
+                    </Link>
                   </li>
                   <li className="">
                     <Link to="">Notification</Link>
@@ -458,10 +787,10 @@ function UserDetails() {
             <h3 className="text-[rgba(255,255,255,0.60)] text-xs not-italic font-bold leading-[18px] mb-[3px]">
               Amount
             </h3>
-            <div className="flex flex-wrap items-center justify-between">
+            <div className="flex items-center justify-between">
               <input
                 type="text"
-                className="h-[42px] w-[182px] bg-transparent text-white text-base not-italic font-normal leading-[42px] font-family: Inter;"
+                className="h-[42px] w-full bg-transparent text-white text-base not-italic font-normal leading-[42px] font-inter border-0 "
                 placeholder="0.0"
               />
               <label className="text-white text-lg not-italic font-medium leading-6">

@@ -58,13 +58,13 @@ function Pagination(props) {
         </li>
       </ul>)}
 
-      <div className="pages text-[rgba(255,255,255,0.50)] font-bold text-[13px]">
+      {/* <div className="pages text-[rgba(255,255,255,0.50)] font-bold text-[13px]">
       {currentPage === 1
               ? `${totalCount > 0 ? 1 : 0}`
               : `${(currentPage - 1) * pageSize + 1}`}{" "}
             - {`${Math.min(currentPage * pageSize, totalCount)}`} of{" "}
             {totalCount}
-      </div>
+      </div> */}
     </div>
   )
 }
